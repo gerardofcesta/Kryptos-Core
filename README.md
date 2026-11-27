@@ -28,7 +28,9 @@ Instead of forwarding proprietary source code, contracts, or personal documents 
 
 ### 2. Deterministic Hardware-Fit Sizing & Mutually Exclusive Engine Coordinator
 * **Closed-Form Memory-Fit Estimator (`evaluate_model_fit`):** Before a single byte is downloaded or loaded, Kryptos Core computes total memory pressure including runtime overhead and KV-cache footprint:
-  $$\text{Required}_{\text{GB}} = 1.15 \times \text{Weights}_{\text{GB}} + \text{KV}_{\text{GB}}(\text{ctx}, \text{quant})$$
+
+$$\mathrm{Required}_{\mathrm{GB}} = 1.15 \times \mathrm{Weights}_{\mathrm{GB}} + \mathrm{KV}_{\mathrm{GB}}(\mathrm{ctx}, \mathrm{quant})$$
+
   Classifies every catalog or custom GGUF model into `🟢 GPU Fluid` ($\le 90\%$ discrete VRAM, or $\le 70\%$ Unified Memory on Apple Silicon / Linux APUs), `🟡 Hybrid GPU + System RAM Offload`, or `🔴 Exceeds Safe Envelope`, estimating expected decode throughput (`tok/s`) from memory bandwidth.
 * **Dual-Tier Mutual Exclusion (`EngineCoordinator`):** Arbitrates VRAM access between a low-latency **Fast / Balanced Tier** (`Ollama` / `llama.cpp`) and an optional **Heavy MoE Tier** (hybrid VRAM + System RAM + NVMe expert offloading via **Colibri**), preventing silent VRAM contention or swap thrashing, with automatic schema-failure cascade escalation (`auto` alias) and an in-memory token ledger per `X-App-Id`.
 

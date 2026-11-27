@@ -122,7 +122,11 @@ class TestWu23TuningAndModels(unittest.TestCase):
             captured_cmds.append(list(cmd))
             return mock.Mock(returncode=0, stdout="OK", stderr="")
 
-        with mock.patch("workspaces.local_llm_core.engine.coordinator.subprocess.run", side_effect=fake_run):
+        with (
+            mock.patch("workspaces.local_llm_core.engine.coordinator.sys.platform", "win32"),
+            mock.patch("workspaces.local_llm_core.engine.coordinator._resolve_pwsh", return_value="pwsh"),
+            mock.patch("workspaces.local_llm_core.engine.coordinator.subprocess.run", side_effect=fake_run),
+        ):
             st1, res1 = execute_engine_action(
                 {"action": "start_heavy", "ramLimitGb": 18, "ctx": 24576, "restart": True},
                 orch_summary_fn=lambda: {"active": False},
@@ -193,16 +197,21 @@ class TestWu23TuningAndModels(unittest.TestCase):
         self.assertEqual(captured[1]["options"]["num_ctx"], 4096)
 
     def test_start_llm_ps1_defines_restart_and_parses_cleanly(self) -> None:
+        import shutil
+
         ps1 = PROJECT_ROOT / "scripts" / "start-llm.ps1"
         raw = ps1.read_text(encoding="utf-8", errors="replace")
         self.assertIn("[switch]$Restart", raw)
         self.assertIn("OLLAMA_CONTEXT_LENGTH", raw)
+        ps_exe = shutil.which("pwsh") or shutil.which("powershell")
+        if not ps_exe:
+            return
         ps_cmd = (
             "$errors = $null; $tokens = $null; "
             f"[void][System.Management.Automation.Language.Parser]::ParseFile('{ps1}', [ref]$tokens, [ref]$errors); "
             "if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_.Message }; exit 1 }"
         )
-        proc = subprocess.run(["powershell", "-NoProfile", "-Command", ps_cmd], check=False, capture_output=True, text=True)
+        proc = subprocess.run([ps_exe, "-NoProfile", "-Command", ps_cmd], check=False, capture_output=True, text=True)
         self.assertEqual(proc.returncode, 0, proc.stderr)
 
     # ------------------------------------------------------------------

@@ -282,6 +282,10 @@ class TestUnifiedGatewayV1(unittest.TestCase):
             mock.patch.object(coord, "get_active_tier", side_effect=fake_active_tier),
             mock.patch.object(coord, "_switch_tier_sync", side_effect=fake_switch_sync),
             mock.patch.object(coord.colibri, "chat_completions_stream", side_effect=fake_colibri_stream),
+            mock.patch(
+                "workspaces.local_llm_core.engine.coordinator.get_ram_telemetry",
+                return_value={"totalGb": 32.0, "freeGb": 20.0},
+            ),
         ):
             r_sse = self.client.post(
                 "/v1/chat/completions",

@@ -148,8 +148,16 @@ def validate_target_path(raw_target: Any) -> pathlib.Path:
                 http_status=403,
             )
 
+    temp_root = pathlib.Path(tempfile.gettempdir()).resolve()
+    is_ephemeral_temp_subdir = (
+        _norm_path_cmp(target_dir) != _norm_path_cmp(temp_root)
+        and _is_same_or_child(target_dir, temp_root)
+    )
+
     for denied_p in denied_trees:
         if _is_same_or_child(target_dir, denied_p):
+            if is_ephemeral_temp_subdir and _is_same_or_child(temp_root, denied_p):
+                continue
             raise SchemaValidationError(
                 f"System or application-data directory is denied in 'target_path': {target_dir}",
                 field_name="target_path",

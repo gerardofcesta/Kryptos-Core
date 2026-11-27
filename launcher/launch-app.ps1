@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Launcher Desktop user-friendly per Kryptos Core.
 .DESCRIPTION

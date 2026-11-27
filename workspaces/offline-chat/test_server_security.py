@@ -256,13 +256,13 @@ class TestGatewayServerSecurity(unittest.TestCase):
         self.assertEqual(st_root, 200)
 
     def test_orchestrator_start_blocks_denied_target_path_via_http(self) -> None:
-        win_dir = os.environ.get("WINDIR") or r"C:\Windows"
+        denied_dir = (os.environ.get("WINDIR") or r"C:\Windows") if os.name == "nt" else "/etc"
         payload = json.dumps(
             {
                 "operator": "orchestrator",
                 "retention_mode": "ephemeral",
                 "mission": "Attempt forbidden target scan",
-                "target_path": win_dir,
+                "target_path": denied_dir,
             }
         ).encode("utf-8")
         status, _, body = self._raw_request(

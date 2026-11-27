@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Icona System Tray di Windows per il controllo rapido di Kryptos Core (100% offline).
 .DESCRIPTION

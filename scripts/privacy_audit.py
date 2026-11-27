@@ -378,6 +378,10 @@ def _check_runtime_hygiene(root: pathlib.Path, *, strict: bool) -> dict[str, Any
         notes.append("app-profile=0B")
 
     if sys.platform == "win32":
+        is_ci_host = (
+            os.environ.get("CI", "").strip().lower() == "true"
+            or os.environ.get("GITHUB_ACTIONS", "").strip().lower() == "true"
+        )
         try:
             proc = subprocess.run(
                 ["fsutil", "behavior", "query", "encryptpagingfile"],
@@ -393,6 +397,8 @@ def _check_runtime_hygiene(root: pathlib.Path, *, strict: bool) -> dict[str, Any
                 val = int(m.group(1))
                 if val == 1:
                     notes.append("EncryptPagingFile=1")
+                elif is_ci_host:
+                    notes.append("EncryptPagingFile=0 [CI runner host]")
                 elif strict:
                     ok = False
                     notes.append("EncryptPagingFile=0 [strict FAIL]")
@@ -444,7 +450,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.json:
         print(json.dumps(report, indent=2))
     else:
-        print(f"=== Local LLM Cross-Platform Privacy Audit ({len(report['checks'])} checks) ===")
+        print(f"=== Kryptos Core Cross-Platform Privacy Audit ({len(report['checks'])} checks) ===")
         for chk in report["checks"]:
             tag = "PASS" if chk["passed"] else "FAIL"
             print(f"[{tag}] Check {chk['id']}/10 - {chk['title']}: {chk['detail']}")

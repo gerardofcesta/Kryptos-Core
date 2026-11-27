@@ -9,23 +9,23 @@
 ```mermaid
 flowchart TB
     subgraph SURFACES["Client Surfaces (Strict Loopback Only)"]
-        DESK["Native Desktop Window\n(pywebview private_mode=True / Linux --app)"]
-        CLI["Headless SSH CLI\n(kryptos-core serve | chat | models | doctor)"]
-        IDE["External IDE / MCP Clients\n(Opt-in Developer Drawer :8787)"]
+        DESK["Native Desktop Window — pywebview private_mode / Linux --app"]
+        CLI["Headless SSH CLI — kryptos-core serve | chat | models | doctor"]
+        IDE["External IDE & MCP Clients — Opt-in Developer Drawer (:8787)"]
     end
 
     subgraph BOUNDARY["Kryptos Core ASGI Process (127.0.0.1)"]
-        MW["GatewaySecurityMiddleware\nHost Allowlist · Anti-CSRF Origin · Constant-Time Token · Strict CSP"]
-        PFW["Deterministic Prompt Firewall\n(PEM / API Keys / IBAN / Tax ID / Email Redaction)"]
-        COORD["Dual-Tier Engine Coordinator\n(VRAM Mutual Exclusion · Auto Cascade · RAM Token Ledger)"]
-        GRAG["Ghost & Vault RAG Engine\n(Mutable bytearray 0x00 Wipe · BM25 + Page/Line Citations)"]
-        MM["Smart Model Manager v3\n(Hardware-Fit Math · Anti-SSRF Range Resume · Zero-Copy Scanner)"]
-        GOMODE["Go Mode L1-L5 & Orchestrator\n(Symlink Escape Guard · Atomic Undo · L5 Hard OS Shield)"]
+        MW["GatewaySecurityMiddleware — Host · Anti-CSRF · Token · Strict CSP"]
+        PFW["Deterministic Prompt Firewall — PEM / API Keys / IBAN / PII Redaction"]
+        COORD["Dual-Tier Engine Coordinator — VRAM Mutual Exclusion & Token Ledger"]
+        GRAG["Ghost & Vault RAG Engine — Mutable bytearray 0x00 Wipe & BM25"]
+        MM["Smart Model Manager v3 — Hardware-Fit Math · Range Resume · Zero-Copy"]
+        GOMODE["Go Mode L1-L5 & Orchestrator — Symlink Guard · Atomic Undo · L5 Shield"]
     end
 
     subgraph ENGINES["External Local Inference Backends (User-Installed, Gitignored)"]
-        FAST["Fast / Balanced Tier\nOllama (:11434) / llama.cpp / LM Studio"]
-        HEAVY["Heavy MoE Tier\nColibri (:11435) — VRAM + RAM + NVMe Offload"]
+        FAST["Fast / Balanced Tier — Ollama (:11434) / llama.cpp / LM Studio"]
+        HEAVY["Heavy MoE Tier — Colibri (:11435) Hybrid VRAM + RAM + NVMe Offload"]
     end
 
     DESK -->|"Ephemeral Loopback + RAM Token"| MW
@@ -48,7 +48,7 @@ flowchart TB
 * **Single-Instance Guarantee:** Uses Win32 named kernel mutex (`Local\KryptosCore_SingleInstance_v1`) on Windows—matching Inno Setup `AppMutex`—and non-blocking `fcntl.flock(LOCK_EX | LOCK_NB)` on a `0600` lockfile (`kryptoscore.lock`) on Linux and macOS, with zero unguarded `ctypes.WinDLL` imports on POSIX.
 * **Canonical Storage Layout (`app_paths.v1`):**
   * **Windows:** `%LOCALAPPDATA%\KryptosCore\data` (`ephemeral_cache=True` disables persistent web cache).
-  * **Linux (XDG):** `${XDG_DATA_HOME:-~/.local/share}/kryptoscore` and `${XDG_RUNTIME_DIR}` (`0700`).
+  * **Linux (XDG):** `~/.local/share/kryptoscore` (via `XDG_DATA_HOME`) and `XDG_RUNTIME_DIR` (`0700`).
   * **macOS:** `~/Library/Application Support/KryptosCore`.
   * **Portable Override:** Placing `portable.flag` beside the binary redirects state into `./data` across all three operating systems.
 

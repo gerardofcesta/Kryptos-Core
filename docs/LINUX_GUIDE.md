@@ -13,7 +13,7 @@ uv pip install -e ".[dev,ocr]"
 What `install.sh` configures:
 - Installs `kryptos-core`, `kryptos`, and `kryptos-desktop` into `~/.local/bin/` (via `uv tool install` or bundle symlink).
 - Registers `~/.local/share/applications/kryptos-core.desktop` following XDG Desktop Entry specifications.
-- Stores runtime discovery and gateway tokens under `${XDG_DATA_HOME:-$HOME/.local/share}/kryptoscore` (`0700` dir / `0600` files) with zero persistent browser cache when ephemeral mode is active.
+- Stores runtime discovery and gateway tokens under `~/.local/share/kryptoscore` (respecting `XDG_DATA_HOME`, `0700` dir / `0600` files) and ephemeral runtime files under `/tmp` or `XDG_RUNTIME_DIR` with zero persistent browser cache when ephemeral mode is active.
 
 ---
 

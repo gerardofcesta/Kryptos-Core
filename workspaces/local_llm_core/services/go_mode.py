@@ -216,6 +216,10 @@ def _is_system_or_protected_path(raw_path: str) -> tuple[bool, str]:
 
     for p_prefix in _L5_POSIX_SYSTEM_PREFIXES:
         if norm_posix == p_prefix or norm_posix.startswith(p_prefix + "/"):
+            if p_prefix == "/var" and (
+                norm_posix.startswith("/var/folders/") or norm_posix.startswith("/var/tmp/")
+            ):
+                continue
             return True, f"POSIX system directory blocked by Level 5 Hard Shield: {stripped}"
 
     # Resolve real path when possible to catch symlink/relative escapes to system roots

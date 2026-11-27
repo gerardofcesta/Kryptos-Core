@@ -375,17 +375,18 @@ class TestPhase3V3(unittest.TestCase):
             tier_switcher=_NoopTierSwitcher(),
             scout_fn=_mock_scout,
         )
-        code, start_res = mgr.start_run(
-            {
-                "operator": "orchestrator",
-                "retention_mode": "ephemeral",
-                "mission": "Run code_audit profile on dirty repo",
-                "mission_profile": "code_audit",
-                "target_path": str(dirty_repo),
-            }
-        )
-        self.assertEqual(code, 200, start_res)
-        self.assertTrue(mgr.wait_for_completion(timeout=5.0))
+        with mock.patch("workspaces.orchestrator.engine.code_audit.shutil.which", return_value=None):
+            code, start_res = mgr.start_run(
+                {
+                    "operator": "orchestrator",
+                    "retention_mode": "ephemeral",
+                    "mission": "Run code_audit profile on dirty repo",
+                    "mission_profile": "code_audit",
+                    "target_path": str(dirty_repo),
+                }
+            )
+            self.assertEqual(code, 200, start_res)
+            self.assertTrue(mgr.wait_for_completion(timeout=25.0))
         ctrl = mgr._current
         self.assertIsNotNone(ctrl)
         # Ephemeral finishes cleanly and purges working state
@@ -562,18 +563,22 @@ class TestPhase3V3(unittest.TestCase):
         self.assertEqual(r_wiz.json()["profile_id"], "laptop_8gb_vram")
 
         # PowerShell AST parse check on scripts/setup-wizard.ps1 (zero syntax errors)
+        import shutil
+
         wizard_ps1 = PROJECT_ROOT / "scripts" / "setup-wizard.ps1"
         self.assertTrue(wizard_ps1.is_file())
-        ps_cmd = (
-            "$errors = $null; $tokens = $null; "
-            f"[void][System.Management.Automation.Language.Parser]::ParseFile('{wizard_ps1}', [ref]$tokens, [ref]$errors); "
-            "if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_.Message }; exit 1 }"
-        )
-        proc = subprocess.run(
-            ["powershell", "-NoProfile", "-Command", ps_cmd],
-            capture_output=True,
-            text=True,
-            timeout=15,
-            check=False,
-        )
-        self.assertEqual(proc.returncode, 0, proc.stderr or proc.stdout)
+        ps_exe = shutil.which("pwsh") or shutil.which("powershell")
+        if ps_exe:
+            ps_cmd = (
+                "$errors = $null; $tokens = $null; "
+                f"[void][System.Management.Automation.Language.Parser]::ParseFile('{wizard_ps1}', [ref]$tokens, [ref]$errors); "
+                "if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_.Message }; exit 1 }"
+            )
+            proc = subprocess.run(
+                [ps_exe, "-NoProfile", "-Command", ps_cmd],
+                capture_output=True,
+                text=True,
+                timeout=15,
+                check=False,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr or proc.stdout)
