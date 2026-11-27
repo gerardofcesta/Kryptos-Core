@@ -1,16 +1,36 @@
-# Kryptos Core v3.0 — Sovereign Offline AI Workstation & Ephemeral Loopback Gateway
+# Kryptos Core v3.1 — Hardened Air-Gapped OpenAI & MCP Security Gateway for Regulated Workflows
 
-[![CI Matrix](https://img.shields.io/badge/CI-Windows%20%7C%20Linux%20%7C%20macOS-0ea5e9)](#quickstart-cross-platform)
+[![CI Matrix](https://img.shields.io/badge/CI-Windows%20%7C%20Linux%20%7C%20macOS-0ea5e9)](#1-command-quickstart-cross-platform)
 [![Privacy](https://img.shields.io/badge/Telemetry-Zero%20%7C%20127.0.0.1%20Loopback-22c55e)](SECURITY.md)
 [![Security Audit](https://img.shields.io/badge/Adversarial%20Pentest-67%2F67%20PASS-16a34a)](docs/SECURITY_AUDIT_V3.md)
-[![Ghost RAG](https://img.shields.io/badge/Ghost%20RAG-Volatile%20RAM%200x00%20Wipe-8b5cf6)](docs/PRIVACY.md)
+[![Ghost RAG](https://img.shields.io/badge/Ghost%20RAG-Ephemeral%20RAM%20%7C%20Zero%20Disk%20DB-8b5cf6)](docs/PRIVACY.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-64748b)](LICENSE)
 
-**Kryptos Core** (from Ancient Greek *κρυπτός*, "hidden / protected") is a **100% offline, cross-platform AI workstation shell, headless SSH CLI, and unified OpenAI/MCP loopback gateway** engineered to maximize local compute utilization and enforce cryptographic, zero-telemetry data sovereignty across **Windows, Linux (CUDA / AMD ROCm / Wayland / X11 / Headless), and macOS (Apple Silicon Metal)**.
+**Kryptos Core** (*Local AI Security Gateway*, from Ancient Greek *κρυπτός*) is an **air-gapped OpenAI & MCP security gateway, ephemeral document audit engine, and local workstation shell** designed for **regulated workflows in Finance (M&A, Credit, Risk), Legal, and Strategy Consulting** across **Windows, Linux, and macOS**.
 
-Instead of forwarding proprietary source code, contracts, or personal documents to third-party cloud APIs, Kryptos Core orchestrates open-weight models directly on your own silicon—combining **ephemeral port-0 loopback isolation**, **deterministic VRAM/RAM hardware-fit math**, **RAM-only Ghost RAG with byte-level zero-wipe**, and **5-tier OS/agent security guardrails**.
+Instead of uploading NDA-bound financial statements, data-room filings, or legal contracts to external cloud endpoints, Kryptos Core sits directly in front of your existing local inference engines (`Ollama`, `LM Studio`, `llama.cpp`, `Colibri`) and enforces three enterprise-grade guarantees out of the box:
 
-![Kryptos Core v3.0 Architecture](docs/assets/architecture.svg)
+1. **Zero-Leakage Loopback Hardening (`127.0.0.1`):** Blocks DNS-rebinding, cross-origin browser CSRF, and SSRF while exposing an authenticated OpenAI (`/v1/*`) and MCP (`/mcp`) gateway for **Cursor, Cline, Continue, and Python analytics scripts**.
+2. **Deterministic PII Prompt Firewall + Cited Ephemeral RAG:** Pre-inference regex/structural redaction strips IBANs, tax IDs, emails, and credentials before model dispatch, while **Ghost RAG** indexes dropped PDFs/filings strictly in volatile RAM (zero SQLite/disk persistence) with exact `[DOC: file | p.X L.A-B]` citations.
+3. **Zero-Copy Model Discovery & Hardware-Fit Sizing:** Links existing local weights (`~/.ollama`, `~/.lmstudio`, HuggingFace cache) with **`0 GB` disk duplication** and estimates VRAM/RAM + KV-cache fit before loading.
+
+> **Finance & M&A Quick Proof:** See [`examples/financial-due-diligence/`](examples/financial-due-diligence/README.md) for a reproducible 100% offline audit extracting Revenue, Adjusted EBITDA, Net Financial Position (PFN), debt covenants, and legal contingencies from corporate filings with automatic PII redaction and line-level citations.
+
+![Kryptos Core Architecture](docs/assets/architecture.svg)
+
+---
+
+## Why Kryptos Core + Ollama / LM Studio? (Not Instead of Them)
+
+Kryptos Core does **not** replace `Ollama`, `LM Studio`, or `llama.cpp`—it orchestrates them with the **governance, redaction, and document-audit boundary** missing from raw local model servers:
+
+| Capability | Raw `Ollama` / `llama.cpp` Server | `LM Studio` / Generic WebUIs | **Kryptos Core (`Gateway + Audit Layer`)** |
+| :--- | :--- | :--- | :--- |
+| **Loopback Browser Attack Surface** | Permissive localhost HTTP by default | Desktop-centric; varies by server mode | **Strict `Host` allowlist (anti-DNS-rebinding), `Origin` anti-CSRF & `0600` bearer token** |
+| **Pre-Inference PII / Secret Redaction** | None (raw prompt hits context) | None built-in | **Deterministic Prompt Firewall (`IBAN`, `Tax ID`, `Email`, `PEM`, `API Keys`)** |
+| **NDA Document Analysis (RAG)** | External persistent vector DB required | Persistent on-disk vector indexes | **Ephemeral RAM-only Ghost RAG (zero disk DB + cited `[DOC: file \| p.X]` excerpts)** |
+| **Model Storage Overhead** | Own manifest store | Own directory tree | **Zero-Copy Discovery (`0 GB` duplication across Ollama, HF & LM Studio)** |
+| **Agent / MCP Containment** | Unrestricted tool calls if wired | Basic client toggle | **Go Mode `L1–L5` workspace containment, anti-SSRF `/mcp` & Break-Glass shield** |
 
 ---
 
@@ -26,12 +46,12 @@ Instead of forwarding proprietary source code, contracts, or personal documents 
   * Constant-time (`secrets.compare_digest`) `X-Kryptos-Token` / `Authorization: Bearer` session authentication (`401`) and `Content-Type: application/json` enforcement on mutating endpoints (`415`).
   * Zero-CDN static delivery under `Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'; frame-ancestors 'none'` and `Cache-Control: no-store`.
 
-### 2. Deterministic Hardware-Fit Sizing & Mutually Exclusive Engine Coordinator
-* **Closed-Form Memory-Fit Estimator (`evaluate_model_fit`):** Before a single byte is downloaded or loaded, Kryptos Core computes total memory pressure including runtime overhead and KV-cache footprint:
+### 2. Hardware-Fit Memory Sizing & Mutually Exclusive Engine Coordinator
+* **Pre-Flight Memory-Fit Estimator (`evaluate_model_fit`):** Before a single byte is downloaded or loaded, Kryptos Core computes memory pressure including runtime overhead and KV-cache footprint:
 
 $$\mathrm{Required}_{\mathrm{GB}} = 1.15 \times \mathrm{Weights}_{\mathrm{GB}} + \mathrm{KV}_{\mathrm{GB}}(\mathrm{ctx}, \mathrm{quant})$$
 
-  Classifies every catalog or custom GGUF model into `🟢 GPU Fluid` ($\le 90\%$ discrete VRAM, or $\le 70\%$ Unified Memory on Apple Silicon / Linux APUs), `🟡 Hybrid GPU + System RAM Offload`, or `🔴 Exceeds Safe Envelope`, estimating expected decode throughput (`tok/s`) from memory bandwidth.
+  Classifies every catalog or custom GGUF model into `🟢 GPU Fluid` ($\le 90\%$ discrete VRAM, or $\le 70\%$ Unified Memory on Apple Silicon / Linux APUs), `🟡 Hybrid GPU + System RAM Offload`, or `🔴 Exceeds Safe Envelope`, estimating expected decode throughput (`tok/s`) from memory bandwidth. *(Note: exact conservative bound for dense/GQA models; treated as a heuristic with confidence margins on sparse MoE or Multi-Head Latent Attention [MLA] architectures).*
 * **Dual-Tier Mutual Exclusion (`EngineCoordinator`):** Arbitrates VRAM access between a low-latency **Fast / Balanced Tier** (`Ollama` / `llama.cpp`) and an optional **Heavy MoE Tier** (hybrid VRAM + System RAM + NVMe expert offloading via **Colibri**), preventing silent VRAM contention or swap thrashing, with automatic schema-failure cascade escalation (`auto` alias) and an in-memory token ledger per `X-App-Id`.
 
 ### 3. Supply-Chain Hardened Model Downloader & Zero-Copy Local Discovery
@@ -40,9 +60,9 @@ $$\mathrm{Required}_{\mathrm{GB}} = 1.15 \times \mathrm{Weights}_{\mathrm{GB}} +
 * **Resumable Streaming Verification:** Downloads into `.downloads/<slug>.part` using `HTTP Range` (`206 Partial Content` + `ETag` continuity) and verifies **4 MiB streaming SHA-256** digests before atomic promotion.
 * **Read-Only Zero-Copy Scanner (`kryptos-core models discover`):** Indexes existing local weights across `~/.ollama/models`, `~/.cache/huggingface/hub`, and `~/.lmstudio/models` with **`0 GB` disk duplication**.
 
-### 4. Drop-to-Chat Ghost RAG (`0x00` Volatile RAM Wipe)
+### 4. Drop-to-Chat Ephemeral Ghost RAG (Zero Intentional Disk Persistence)
 * Drag-and-drop `.pdf`, `.md`, `.txt`, `.py`, `.ts`, `.json`, `.csv`, or `.docx` (parsed safely via `defusedxml` against XXE/entity-expansion) directly into chat (`/api/chat/ephemeral-docs`).
-* **Ghost Mode Guarantee:** Document chunks (`~600` tokens, `80`-token overlap) reside strictly inside mutable Python `bytearray` buffers in volatile RAM—never written to SQLite or temp files—and are explicitly overwritten with `0x00` bytes upon TTL expiry, session clear, or shutdown.
+* **Ephemeral RAM Architecture & Threat-Model Transparency:** Document chunks (`~600` tokens, `80`-token overlap) are indexed strictly in volatile RAM without writing SQLite databases or temp files to disk, performing best-effort `0x00` zeroization on mutable `bytearray` chunk stores upon TTL expiry, session clear, or shutdown. See [`SECURITY.md`](SECURITY.md) for transparent CPython immutable-heap, OS swap, and GPU VRAM KV-cache boundaries.
 * **Sub-15ms Lexical + Hybrid Grounding:** Injects grounded blocks (`[DOC: file | p.X L.A-B]`) and renders interactive source-excerpt citation pills in the UI.
 
 ### 5. Autonomous Agent Containment: Go Mode `L1–L5`, Prompt Firewall & Sandbox
@@ -91,7 +111,14 @@ See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) for complete license noti
 
 ---
 
-## Quickstart (Cross-Platform)
+## 1-Command Quickstart (Cross-Platform)
+
+### Instant Gateway Launch (`< 60s` with `uv`)
+
+```bash
+uv run --extra ocr kryptos-core serve               # Starts hardened 127.0.0.1 OpenAI + MCP gateway
+uv run python examples/financial-due-diligence/run_nda_due_diligence.py  # Run offline M&A audit demo
+```
 
 ### Windows (PowerShell + `uv`)
 

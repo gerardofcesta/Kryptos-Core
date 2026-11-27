@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kryptos-core"
-version = "3.0.0"
-description = "Kryptos Core: 100% offline, zero-telemetry AI workstation, ephemeral loopback OpenAI/MCP gateway, RAM-only Ghost RAG, Smart Hardware-Fit Model Manager, Go Mode L1-L5 guardrails, and Autonomous Orchestrator."
+version = "3.1.0"
+description = "Kryptos Core: Hardened air-gapped OpenAI & MCP security gateway for regulated workflows (Finance, M&A, Legal, Consulting) with deterministic PII firewall, ephemeral RAM-only RAG, and zero-copy local LLM discovery."
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.11"
