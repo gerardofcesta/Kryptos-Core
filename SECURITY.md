@@ -1,4 +1,4 @@
-# Security Policy & Threat Model (`Kryptos Core v3.0`)
+# Security Policy & Threat Model (`Kryptos Core v3.1`)
 
 ## Security Architecture & Invariants
 
@@ -12,8 +12,11 @@
    - Model downloads require explicit 2-step user authorization (`prepare -> start`), restrict origins to allowlisted HTTPS model registries, validate redirects hop-by-hop (`follow_redirects=False`), reject raw IPv4/IPv6/IPv6-mapped IPv4/decimal/octal/hex hosts and userinfo spoofing, and verify 4 MiB streaming SHA-256 digests before promoting `.part` files.
    - Release pipelines emit deterministic `SHA256SUMS.txt` checksums and `CycloneDX 1.5` SBOMs (`sbom.cyclonedx.json`).
 4. **Deterministic Prompt Firewall & Go Mode Level 5 Hard Shield:**
-   - Opt-in `prompt_firewall.py` redacts PEM private keys, API tokens, IBANs, fiscal codes, and email addresses prior to `/v1/chat/completions` and `/mcp` dispatch (`X-Prompt-Firewall: true`).
+   - Opt-in `prompt_firewall.py` redacts PEM private keys, API tokens, IBANs, fiscal codes, and email addresses prior to `/v1/chat/completions` and `/mcp` dispatch (`X-Prompt-Firewall: true` or `KRYPTOS_PROMPT_FIREWALL=1`).
    - Go Mode enforces Level 5 OS/Registry/Credential protection (`check_level5_hard_shield`), blocks null bytes and double-URL-encoded traversal (`%252e%252e`), prevents workspace symlink escapes (`_symlink_escapes_workspace`), and requires a multi-checkbox + manual-phrase Break-Glass ritual.
+5. **Known Physical & Runtime Memory Boundaries (Ephemeral Ghost RAG):**
+   - Ghost RAG enforces **zero intentional disk persistence** (no SQLite/vector-file writes) and performs best-effort `0x00` overwrites on mutable `bytearray` chunk stores upon TTL expiry or `/api/rag/clear`.
+   - **Out-of-Scope Memory Artifacts:** Standard user-space CPython allocates transient immutable `str`/`bytes` buffers during document parsing (`pymupdf` / `defusedxml`) and JSON serialization that remain on the heap until overwritten by the allocator; OS virtual-memory paging may swap unlocked pages unless disk/swap encryption is enabled (`EncryptPagingFile=1` / LUKS / FileVault); and inference backends (`Ollama` / `llama.cpp`) retain prompt context in GPU VRAM KV-caches until evicted or process exit. For strict NDA workflows, operate on full-disk-encrypted workstations with encrypted swap.
 
 ## Reporting a Vulnerability
 

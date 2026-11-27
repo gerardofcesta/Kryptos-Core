@@ -18,6 +18,8 @@
 
 Formula: `required_gb = model_size_gb * 1.15 + kv_cache_gb(ctx)`.
 
+> **Scope & Architectural Confidence Note:** This sizing rule provides exact conservative bounds for standard dense and GQA `GGUF` transformers. For recent **sparse Mixture-of-Experts (MoE)** and **Multi-Head Latent Attention (MLA)** architectures (e.g., DeepSeek-V2/V3/R1 derivatives), treat `required_gb` as a **conservative heuristic with confidence margins**, since active expert routing buffers and compressed latent KV states deviate from uniform dense layer footprints.
+
 | Traffic Light | Condition (Discrete GPU / CPU) | Condition (Unified Memory `Tier E`) | Expected Throughput & Behavior |
 | :--- | :--- | :--- | :--- |
 | **Green (`gpu_fluid`)** | `required_gb <= available_vram_gb * 0.90` | `required_gb <= total_ram_gb * 0.70` | Full GPU / Unified residence (`~20–120 tok/s`). |

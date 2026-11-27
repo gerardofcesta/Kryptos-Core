@@ -17,8 +17,9 @@
 
 - **Ephemeral Desktop Window:** `desktop.py` enforces `pywebview` `private_mode=True` with `storage_path=None`, preventing browser disk caches, cookies, or `localStorage` persistence.
 - **RAM-Only Chat & Session Token:** Conversation state and the active gateway session token reside strictly in process/browser RAM.
-- **Ghost RAG `0x00` Byte Wipe:** Document chunks uploaded in Ghost mode are held in mutable `bytearray` buffers and explicitly overwritten with `0x00` bytes upon TTL expiration, `/api/rag/clear`, or application shutdown.
-- **Volatile KV-Cache Policy:** Heavy MoE sessions default to `KVSAVE=0` so intermediate attention states never touch NVMe/SSD storage in Ghost mode.
+- **Ghost RAG Ephemeral RAM Indexing (Zero Intentional Disk Persistence):** Document chunks uploaded in Ghost mode are indexed exclusively in volatile RAM (never written to SQLite, vector DB files, or disk temp directories) and mutable `bytearray` chunk stores are overwritten with `0x00` upon TTL expiration, `/api/rag/clear`, or shutdown as a best-effort memory hygiene measure.
+- **Transparent Memory Boundaries (Threat Model):** Because Kryptos Core runs in user-space CPython alongside external inference runtimes (`Ollama`, `llama.cpp`, `Colibri`), best-effort `bytearray` zeroization does **not** zeroize transient immutable Python `str`/`bytes` objects created during PDF/DOCX parsing prior to garbage collection, unencrypted OS swap/pagefile pages (note: `privacy_audit.py --strict` checks `EncryptPagingFile=1` on Windows), or active attention KV-caches held inside GPU VRAM during generation.
+- **Volatile KV-Cache Policy:** Heavy MoE sessions default to `KVSAVE=0` so intermediate attention states are never intentionally serialized to NVMe/SSD storage in Ghost mode.
 
 ---
 
