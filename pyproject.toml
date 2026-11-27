@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kryptos-core"
+version = "3.0.0"
+description = "Kryptos Core: 100% offline, zero-telemetry AI workstation, ephemeral loopback OpenAI/MCP gateway, RAM-only Ghost RAG, Smart Hardware-Fit Model Manager, Go Mode L1-L5 guardrails, and Autonomous Orchestrator."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115.0",
+  "uvicorn[standard]>=0.30.0",
+  "httpx>=0.27.0",
+  "pydantic>=2.0.0",
+  "pyyaml>=6.0.0",
+  "pywebview>=5.0.0",
+  "psutil>=5.9.0",
+  "jinja2>=3.1.0",
+  "defusedxml>=0.7.1",
+  "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+ocr = [
+  "pymupdf>=1.24.0",
+]
+dev = [
+  "pytest>=8.0.0",
+  "ruff>=0.6.0",
+]
+
+[project.scripts]
+kryptos-core = "workspaces.local_llm_core.cli:main"
+kryptos = "workspaces.local_llm_core.cli:main"
+kryptos-desktop = "workspaces.local_llm_core.desktop:main"
+local-llm = "workspaces.local_llm_core.cli:main"
+local-llm-desktop = "workspaces.local_llm_core.desktop:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["workspaces*"]
+
+[tool.pytest.ini_options]
+testpaths = ["workspaces"]
+pythonpath = ["."]
+markers = [
+  "docker: tests requiring Docker Desktop daemon",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 110

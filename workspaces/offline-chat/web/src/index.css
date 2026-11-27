@@ -1,0 +1,151 @@
+@import "./ui-kit/tokens.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+    font-family: var(--wdk-font-sans);
+    background-color: var(--wdk-bg);
+    color: var(--wdk-fg);
+  }
+}
+
+/* Native <progress> styling for zero inline style="" attributes under strict CSP */
+.wdk-progress {
+  width: 100%;
+  height: 0.5rem;
+  border-radius: 9999px;
+  overflow: hidden;
+  appearance: none;
+  background-color: var(--wdk-surface-muted);
+  border: 1px solid var(--wdk-border);
+}
+
+.wdk-progress::-webkit-progress-bar {
+  background-color: var(--wdk-surface-muted);
+  border-radius: 9999px;
+}
+
+.wdk-progress::-webkit-progress-value {
+  background-color: var(--wdk-primary);
+  border-radius: 9999px;
+}
+
+.wdk-progress.is-success::-webkit-progress-value {
+  background-color: var(--wdk-success);
+}
+
+.wdk-progress.is-warning::-webkit-progress-value {
+  background-color: var(--wdk-warning);
+}
+
+.wdk-progress.is-danger::-webkit-progress-value {
+  background-color: var(--wdk-danger);
+}
+
+.wdk-progress::-moz-progress-bar {
+  background-color: var(--wdk-primary);
+  border-radius: 9999px;
+}
+
+/* Safe Markdown rendering typography */
+.llm-prose {
+  line-height: 1.6;
+  color: var(--wdk-fg);
+  font-size: 0.9rem;
+}
+
+.llm-prose h1 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0.5rem 0 0.75rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--wdk-border);
+}
+
+.llm-prose h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 1rem 0 0.45rem;
+  color: var(--wdk-primary);
+}
+
+.llm-prose h3 {
+  font-size: 0.98rem;
+  font-weight: 600;
+  margin: 0.85rem 0 0.35rem;
+}
+
+.llm-prose p {
+  margin: 0.45rem 0;
+}
+
+.llm-prose ul,
+.llm-prose ol {
+  margin: 0.45rem 0 0.45rem 1.35rem;
+}
+
+.llm-prose ul {
+  list-style-type: disc;
+}
+
+.llm-prose ol {
+  list-style-type: decimal;
+}
+
+.llm-prose blockquote {
+  margin: 0.65rem 0;
+  padding: 0.5rem 0.85rem;
+  border-left: 3px solid var(--wdk-primary);
+  background-color: var(--wdk-surface-muted);
+  border-radius: 0 var(--wdk-radius-sm) var(--wdk-radius-sm) 0;
+  color: var(--wdk-fg-muted);
+}
+
+.llm-prose pre {
+  margin: 0.6rem 0;
+  padding: 0.75rem;
+  border-radius: var(--wdk-radius-md);
+  background-color: var(--wdk-surface-muted);
+  border: 1px solid var(--wdk-border);
+  overflow-x: auto;
+  font-family: var(--wdk-font-mono);
+  font-size: 0.8rem;
+}
+
+.llm-prose code {
+  font-family: var(--wdk-font-mono);
+  font-size: 0.85em;
+  background-color: var(--wdk-surface-muted);
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+}
+
+.llm-prose pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.llm-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75rem 0;
+  font-size: 0.82rem;
+}
+
+.llm-prose th,
+.llm-prose td {
+  border: 1px solid var(--wdk-border);
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+}
+
+.llm-prose th {
+  background-color: var(--wdk-surface-muted);
+  font-weight: 600;
+}

@@ -1,0 +1,67 @@
+# === Ambienti e segreti ===
+.env
+.env.local
+*.secret
+
+# === Pesi modelli e checkpoint (mai committare file pesanti) ===
+*.gguf
+*.ggml
+*.bin
+*.safetensors
+*.pt
+*.pth
+*.onnx
+*.ckpt
+models/weights/
+models/cache/
+.cache/
+
+# === Python / Node / Ambienti virtuali ===
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+node_modules/
+
+# === Log, output temporanei e dati Docker ===
+logs/
+*.log
+tmp/
+services/data/
+benchmarks/raw/
+
+# === Sistema Operativo & IDE ===
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/*.log
+
+# === Heavy MoE Engines & Weights ===
+engines/
+models/heavy-moe/
+*.colibri/
+.coli_usage
+.coli_kv
+.coli_ssd
+launcher/.app-profile/
+
+# === Orchestrator Vault & Runs (Persistent Audit, mai committare) ===
+workspaces/vault/
+workspaces/runs/
+
+# === Gateway Ephemeral Tokens ===
+gateway.token
+*.token
+
+# === Desktop Packaging / Installer Outputs ===
+/dist/
+/build/
+/installer/out/
+*.egg-info/
+
+# === Internal Planning Notes (never track in public repository) ===
+PIANO_*.md
+
+# === Auto-Generated Local Workstation Hardware Profile ===
+config/hardware-profile.json

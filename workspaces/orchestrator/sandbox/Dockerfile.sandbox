@@ -1,0 +1,47 @@
+# Local LLM Orchestrator — Offline Analysis & PoC Sandbox Image
+# Tag canonico: local-llm-sandbox:offline
+# Build una-tantum con rete attiva; a runtime esegue SEMPRE con --network none --read-only.
+
+FROM python:3.12-slim
+
+LABEL org.local-llm.sandbox="offline" \
+      org.local-llm.purpose="Read-only code/data analysis and PoC execution sandbox"
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    HOME=/work \
+    TMPDIR=/work \
+    XDG_CACHE_HOME=/work/.cache \
+    RUFF_CACHE_DIR=/work/.ruff_cache \
+    MPLCONFIGDIR=/work/.matplotlib
+
+# Install ripgrep (offline fast code search) with minimal footprint
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ripgrep \
+    && rm -rf /var/lib/apt/lists/*
+
+# Pre-install offline data, document, static analysis, and testing libraries
+RUN pip install --no-cache-dir \
+    duckdb \
+    pandas \
+    pyarrow \
+    pymupdf \
+    openpyxl \
+    ruff \
+    bandit \
+    pytest
+
+# Non-root sandbox user (UID/GID 1000) and fixed mountpoints (/work tmpfs, /target :ro)
+RUN groupadd -g 1000 sandboxuser \
+    && useradd -u 1000 -g 1000 -d /work -M -s /bin/sh sandboxuser \
+    && mkdir -p /work /target \
+    && chown 1000:1000 /work \
+    && chmod 1777 /work \
+    && chmod 755 /target
+
+USER sandboxuser
+WORKDIR /work
+
+CMD ["python3", "--version"]

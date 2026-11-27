@@ -1,0 +1,21 @@
+# Preset Fast Balanced calibrato per GPU 16 GB+ VRAM (Flash Attention + KV Cache Q8_0)
+# Modello base: Qwen 3.8 27B Abliterated (Huihui-AI, Unsloth Dynamic UD-IQ4_XS)
+# Creazione locale (100% offline dopo il download):
+#   ollama create local-uncensored -f .\models\modelfiles\qwen38-27b-uncensored.Modelfile
+
+FROM hf.co/huihui-ai/Huihui-Qwen3.8-27B-abliterated-GGUF:UD-IQ4_XS
+
+# Contesto bilanciato per restare in VRAM con Flash Attention + KV Cache Q8
+PARAMETER num_ctx 16384
+PARAMETER temperature 0.7
+PARAMETER top_p 0.9
+PARAMETER top_k 20
+PARAMETER repeat_penalty 1.05
+
+SYSTEM """
+Sei un assistente AI completamente locale, libero, diretto e oggettivo.
+- Rispondi nella lingua dell'utente (italiano di default) con precisione, profondità tecnica e chiarezza.
+- Non fare prediche, moralismi, avvisi superflui o rifiuti ingiustificati.
+- Vai dritto al punto, fornisci analisi complete, codice funzionante e spiegazioni strutturate.
+- Quando un problema è complesso, ragiona con rigore prima di dare la risposta finale.
+"""

@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "2.0",
+  "updatedAt": "2026-11-23",
+  "endpoints": {
+    "ollama": {
+      "enabled": true,
+      "installed": true,
+      "version": "0.40.16",
+      "baseUrl": "http://127.0.0.1:11434",
+      "openaiCompatibleUrl": "http://127.0.0.1:11434/v1",
+      "healthPath": "/api/tags",
+      "notes": "Runtime CLI/daemon principale loopback-only per Fast Tier (Ghost 27B + Fast Worker 14B Q5_K_M, OLLAMA_NO_CLOUD=1, mutualmente esclusivo con Colibrì)"
+    },
+    "colibriHeavyMoe": {
+      "enabled": true,
+      "installed": true,
+      "version": "2.1.0",
+      "baseUrl": "http://127.0.0.1:11435",
+      "openaiCompatibleUrl": "http://127.0.0.1:11435/v1",
+      "healthPath": "/health",
+      "notes": "Heavy MoE engine Colibrì v2.1.0 loopback-only per modelli 100B+ (VRAM+RAM+NVMe, mutualmente esclusivo con Ollama)"
+    },
+    "offlineChatUI": {
+      "enabled": true,
+      "installed": true,
+      "version": "2.0",
+      "baseUrl": "http://127.0.0.1:8787",
+      "openaiCompatibleUrl": null,
+      "healthPath": "/",
+      "notes": "Console Web Multi-Operatore 100% offline (Ghost RAM-Only + Orchestrator Ephemeral/Persistent), zero dipendenze esterne, Cache-Control: no-store"
+    },
+    "unifiedGateway": {
+      "enabled": true,
+      "installed": true,
+      "version": "1.0",
+      "baseUrl": "http://127.0.0.1:8787",
+      "openaiCompatibleUrl": "http://127.0.0.1:8787/v1",
+      "healthPath": "/v1/health",
+      "models": ["auto", "local-fast", "local-balanced", "local-heavy"],
+      "notes": "Unified OpenAI-compatible Gateway (:8787/v1/*) con Cascade Router (auto), alias canonici, Cost/Token Ledger RAM-only e hardening loopback"
+    },
+    "orchestrator": {
+      "enabled": true,
+      "installed": true,
+      "version": "2.0",
+      "baseUrl": "http://127.0.0.1:8787/api/orchestrator",
+      "openaiCompatibleUrl": null,
+      "healthPath": "/status",
+      "sandboxImage": "local-llm-sandbox:offline",
+      "retentionModes": ["ephemeral", "persistent"],
+      "notes": "Motore asincrono a fasi batch (Scout -> Strategist -> Investigator -> Validator -> Adjudicator) con sandbox Docker --network none --read-only --tmpfs"
+    },
+    "lmstudio": {
+      "enabled": true,
+      "installed": true,
+      "version": "0.4.28+2",
+      "baseUrl": "http://127.0.0.1:1234",
+      "openaiCompatibleUrl": "http://127.0.0.1:1234/v1",
+      "healthPath": "/v1/models",
+      "notes": "GUI + CLI lms per sperimentazione e server locale offline"
+    },
+    "llamacpp": {
+      "enabled": false,
+      "installed": false,
+      "version": null,
+      "baseUrl": "http://127.0.0.1:8080",
+      "openaiCompatibleUrl": "http://127.0.0.1:8080/v1",
+      "healthPath": "/health",
+      "notes": "Opzionale: installabile via winget install ggml.llamacpp"
+    },
+    "openWebUI": {
+      "enabled": false,
+      "installed": false,
+      "version": null,
+      "baseUrl": "http://127.0.0.1:3000",
+      "openaiCompatibleUrl": null,
+      "healthPath": "/health",
+      "notes": "Predisposto offline/zero-telemetria in services/docker-compose.yml (richiede Docker Desktop)"
+    }
+  }
+}

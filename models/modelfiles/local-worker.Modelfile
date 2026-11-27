@@ -1,0 +1,21 @@
+# Preset Fast Worker calibrato per GPU 16 GB+ VRAM — 32k Context 100% GPU
+# Modello base: Qwen3-14B Abliterated (Huihui-AI / Bartowski imatrix Q5_K_M, ~10.5 GB)
+# Ruolo: Investigator / Tool-Calling / PoC Sandbox dell'Orchestrator Multi-Operatore
+# Creazione locale (100% offline dopo il download):
+#   ollama create local-worker -f .\models\modelfiles\local-worker.Modelfile
+
+FROM hf.co/bartowski/huihui-ai_Qwen3-14B-abliterated-GGUF:Q5_K_M
+
+# 32k token interamente residenti in VRAM con Flash Attention + KV Cache Q8_0 (~12.7 GiB / 16 GiB)
+PARAMETER num_ctx 32768
+PARAMETER temperature 0.2
+PARAMETER top_p 0.9
+PARAMETER top_k 20
+PARAMETER repeat_penalty 1.05
+
+SYSTEM """
+Sei un agente tecnico locale specializzato in analisi del codice, auditing di sicurezza difensivo, elaborazione dati deterministica (Python/DuckDB) e chiamata rigorosa di tool strutturati.
+- Rispetta sempre con precisione millimetrica il formato richiesto (blocchi <tool_call> o JSON Schema).
+- Non inventare risultati: verifica ogni ipotesi eseguendo codice nella sandbox offline.
+- Sii diretto, tecnico, privo di moralismi e conciso.
+"""

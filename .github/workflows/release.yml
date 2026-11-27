@@ -1,0 +1,87 @@
+name: Release Multi-OS
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-artifacts:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows
+          - os: ubuntu-latest
+            platform: linux
+          - os: macos-latest
+            platform: macos
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12 via uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: workspaces/offline-chat/web/package-lock.json
+
+      - name: Install packaging toolchain
+        run: |
+          uv venv .venv --python 3.12
+          uv pip install -e ".[dev,ocr]" pyinstaller
+
+      - name: Build Windows bundle & manifests
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: powershell -ExecutionPolicy Bypass -File scripts/build_dist.ps1 -SkipInstaller
+
+      - name: Build Linux tarball / AppImage & manifests
+        if: matrix.platform == 'linux'
+        run: bash scripts/build_linux.sh
+
+      - name: Build macOS .dmg & manifests
+        if: matrix.platform == 'macos'
+        run: bash scripts/build_macos.sh
+
+      - name: Upload platform artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.platform }}
+          path: installer/out/*
+
+  publish-release:
+    needs: build-artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all platform artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-bundle
+          merge-multiple: true
+
+      - name: Recompute unified SHA256SUMS.txt & CycloneDX SBOM
+        run: |
+          python3 scripts/generate_release_manifest.py --artifacts-dir release-bundle --repo-root . --version "${GITHUB_REF_NAME#v}"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-bundle/*
+          generate_release_notes: true

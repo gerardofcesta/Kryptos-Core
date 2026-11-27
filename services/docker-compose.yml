@@ -1,0 +1,38 @@
+# ==============================================================================
+# Local LLM Operational Center — Optional Auxiliary Services (Privacy Hardened)
+# ==============================================================================
+# Stack opzionale Open WebUI configurato per funzionamento offline e zero
+# telemetria, esposto esclusivamente su 127.0.0.1 (loopback locale).
+#
+# Avvio manuale quando desiderato (richiede Docker Desktop):
+#   docker compose -f .\services\docker-compose.yml --profile webui up -d
+#   docker compose -f .\services\docker-compose.yml --profile webui down
+# ==============================================================================
+
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: local-llm-open-webui
+    profiles: ["webui"]
+    ports:
+      - "127.0.0.1:${OPEN_WEBUI_PORT:-3000}:8080"
+    environment:
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - OPENAI_API_BASE_URL=http://host.docker.internal:1234/v1
+      - OPENAI_API_KEY=${LMSTUDIO_API_KEY:-lm-studio}
+      - WEBUI_AUTH=false
+      - OFFLINE_MODE=true
+      - SCARF_NO_ANALYTICS=true
+      - DO_NOT_TRACK=true
+      - ANONYMIZED_TELEMETRY=false
+      - ENABLE_COMMUNITY_SHARING=false
+      - ENABLE_VERSION_UPDATE_CHECK=false
+      - ENABLE_OLLAMA_API=true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - open-webui-data:/app/backend/data
+    restart: "no"
+
+volumes:
+  open-webui-data:

@@ -1,0 +1,19 @@
+# ==============================================================================
+# Local LLM Operational Center — Hardening WSL2 (%USERPROFILE%\.wslconfig)
+# ==============================================================================
+# - swap=0: disabilita il file di swap WSL2 (swap.vhdx) per prevenire leak di
+#   dati sensibili dei container sandbox su disco NVMe.
+# - memory=3GB: limita la RAM riservata a WSL2/Docker Desktop, preservando
+#   ampio headroom sulla RAM dell'host per il tier Heavy MoE.
+# - processors=8: bilancia l'esecuzione sandbox lasciando core liberi all'host.
+# - localhostForwarding=true: mantiene il forwarding loopback locale standard.
+#
+# Dopo la modifica eseguire `wsl --shutdown` (o riavviare Docker Desktop) per
+# applicare i limiti alla VM WSL2.
+# ==============================================================================
+
+[wsl2]
+memory=3GB
+processors=8
+swap=0
+localhostForwarding=true

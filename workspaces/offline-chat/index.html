@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kryptos Core — Sovereign Offline AI Workstation</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-dot" id="topOnlineDot"></span>
+        <div>
+          <div class="brand-title">Kryptos Core // Offline Workstation</div>
+          <div class="brand-sub">127.0.0.1 Loopback · Zero Telemetria · Zero Disk Log</div>
+        </div>
+      </div>
+
+      <nav class="tabs" role="tablist">
+        <button class="tab-btn active" data-tab="chat">Chat Dual-Tier</button>
+        <button class="tab-btn" data-tab="engines">Motori &amp; Risorse</button>
+        <button class="tab-btn" data-tab="models">Modelli &amp; Benchmark</button>
+        <button class="tab-btn" data-tab="prompts">Libreria Prompt</button>
+        <button class="tab-btn" data-tab="orchestrator" id="tabBtnOrchestrator">Orchestrator<span class="tab-live-dot" id="orchTabLiveDot" style="display:none;"></span></button>
+      </nav>
+
+      <div class="operator-switcher" role="group" aria-label="Profilo Operatore">
+        <button type="button" class="op-pill-btn ghost active" id="btnProfileGhost" title="Operatore Ghost: solo RAM volatile, zero scritture su disco, zero tool, KVSAVE=0 bloccato">
+          <span>[GHOST · RAM-Only]</span>
+        </button>
+        <button type="button" class="op-pill-btn orchestrator" id="btnProfileOrchestrator" title="Operatore Orchestrator Autonomo: sandbox Docker --network none con policy immutabile Ephemeral o Persistent">
+          <span>[ORCHESTRATOR · Autonomous]</span>
+          <span class="op-policy-tag" id="topOrchPolicyTag">IDLE</span>
+        </button>
+      </div>
+
+      <div class="top-telemetry">
+        <span class="pill offline" id="topOllamaPill">Fast :11434 OFF</span>
+        <span class="pill offline" id="topHeavyPill">Heavy :11435 OFF</span>
+        <span class="pill" id="topVramPill">VRAM --</span>
+        <span class="pill" id="topRamPill">RAM --</span>
+        <button type="button" class="btn danger" id="btnShutdownApp" title="Spegne Orchestrator/RAM, Ollama, Colibrì, Tray e chiude l'App liberando tutta la VRAM" style="padding:4px 10px;font-size:12px;">⏻ Spegni Tutto</button>
+      </div>
+    </header>
+
+    <!-- TAB 1: CHAT DUAL-TIER -->
+    <section class="tab-panel active" id="tab-chat">
+      <aside class="chat-sidebar">
+        <div>
+          <label>Backend Attivo</label>
+          <div class="backend-switch">
+            <button type="button" class="backend-card active" id="btnBackendFast" data-backend="ollama">
+              <div class="backend-card-head">
+                <span>Fast Tier</span>
+                <span class="status-dot off" id="fastCardBadge">OFFLINE</span>
+              </div>
+              <div class="backend-card-sub">Ollama 27B :11434</div>
+            </button>
+            <button type="button" class="backend-card" id="btnBackendHeavy" data-backend="heavy">
+              <div class="backend-card-head">
+                <span>Heavy MoE</span>
+                <span class="status-dot off" id="heavyCardBadge">OFFLINE</span>
+              </div>
+              <div class="backend-card-sub">Colibrì :11435</div>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+            <label for="modelSelect" style="margin:0;">Modello Selezionato</label>
+            <button type="button" class="btn sm" id="refreshModelsBtn" title="Aggiorna lista modelli">↻</button>
+          </div>
+          <select id="modelSelect"></select>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <label for="tempInput">Temperature</label>
+            <input id="tempInput" type="number" step="0.05" min="0" max="2" value="0.7" />
+          </div>
+          <div>
+            <label for="topPInput">Top-P</label>
+            <input id="topPInput" type="number" step="0.05" min="0.05" max="1" value="0.9" />
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <label for="ctxInput">Context (num_ctx)</label>
+            <input id="ctxInput" type="number" step="1024" min="1024" max="131072" value="16384" />
+          </div>
+          <div>
+            <label for="maxTokensInput">Max Tokens</label>
+            <input id="maxTokensInput" type="number" step="256" min="0" max="65536" value="4096" title="0 = illimitato su Ollama" />
+          </div>
+        </div>
+
+        <div class="toggle-row">
+          <span>Ragionamento (Think)</span>
+          <input id="thinkToggle" type="checkbox" checked />
+        </div>
+
+        <div>
+          <label for="reasoningEffortSelect">Reasoning Effort (Qwen 3.8)</label>
+          <select id="reasoningEffortSelect">
+            <option value="low" selected>low (veloce)</option>
+            <option value="medium">medium (bilanciato)</option>
+            <option value="high">high (approfondito)</option>
+            <option value="xhigh">xhigh (massimo)</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="presetSelect">Preset System Prompt</label>
+          <select id="presetSelect"></select>
+        </div>
+
+        <div>
+          <label for="systemPrompt">System Prompt Attivo (live)</label>
+          <textarea id="systemPrompt" rows="5"></textarea>
+        </div>
+
+        <div class="grid-2">
+          <button type="button" class="btn" id="exportMdBtn">Esporta MD</button>
+          <button type="button" class="btn" id="exportJsonBtn">Esporta JSON</button>
+        </div>
+        <button type="button" class="btn danger" id="clearBtn">Pulisci RAM</button>
+
+        <div class="privacy-box">
+          <strong>100% Offline &amp; Privato</strong><br />
+          Nessuna richiesta esterna, CSP rigorosa, nessun salvataggio su disco di chat/prompt. La sessione vive solo in RAM.
+        </div>
+      </aside>
+
+      <main class="chat-main">
+        <div class="chat-header">
+          <div id="chatActiveInfo" class="mono">Backend: Ollama (:11434) · Pronto</div>
+          <div id="chatLiveStats" class="mono">Sessione: 0 turni</div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+          <div class="empty-state" id="chatWelcome">
+            <h2>Console Chat Dual-Tier Offline</h2>
+            Seleziona <strong>Fast Tier (Ollama 27B)</strong> oppure <strong>Heavy MoE (Colibrì)</strong> nella barra laterale.<br />
+            Supporta streaming token in tempo reale, blocco collassabile per ragionamento (<code class="inline-code">thinking</code> / <code class="inline-code">reasoning_content</code> / <code class="inline-code">&lt;think&gt;</code>), Markdown sicuro, copia codice, rigenerazione ed esportazione locale.
+          </div>
+        </div>
+
+        <footer class="chat-footer">
+          <div class="composer">
+            <textarea id="promptInput" placeholder="Scrivi il tuo prompt... (Invio per inviare, Shift+Invio per andare a capo)"></textarea>
+            <button type="button" class="btn primary" id="sendBtn">Invia</button>
+            <button type="button" class="btn danger" id="stopBtn" style="display:none;">Stop</button>
+            <button type="button" class="btn" id="regenBtn" title="Rigenera l'ultima risposta">Rigenera</button>
+          </div>
+        </footer>
+      </main>
+    </section>
+
+    <!-- TAB 2: CENTRO CONTROLLO MOTORI & RISORSE -->
+    <section class="tab-panel" id="tab-engines">
+      <div class="page-scroll">
+        <div class="page-container">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div>
+              <h2 style="margin:0; font-size:18px;">Centro Controllo Motori &amp; Risorse Hardware</h2>
+              <div class="mono" style="font-size:12px; color:var(--muted);">Telemetria live ogni 4s · Mutua esclusione Fast ↔ Heavy MoE</div>
+            </div>
+            <button type="button" class="btn" id="refreshTelemetryBtn">Aggiorna Telemetria</button>
+          </div>
+
+          <div class="card-grid-3">
+            <div class="card">
+              <div class="card-head">
+                <h3 class="card-title">GPU VRAM</h3>
+                <span class="pill" id="gpuTempPill">-- °C</span>
+              </div>
+              <div class="mono" style="font-size:12px; color:var(--muted);" id="gpuNameText">Rilevamento GPU...</div>
+              <div class="meter-track"><div class="meter-fill" id="gpuMeter"></div></div>
+              <div class="kv-list" id="gpuKv">
+                <span>Usata: <strong>--</strong></span>
+                <span>Libera: <strong>--</strong></span>
+                <span>Power: <strong>--</strong></span>
+                <span>Util: <strong>--</strong></span>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <h3 class="card-title">RAM Sistema (Anti-Swap)</h3>
+                <span class="pill online" id="ramSwapPill">Anti-Swap OK</span>
+              </div>
+              <div class="mono" style="font-size:12px; color:var(--muted);" id="ramHeadroomNote">Verifica memoria di sistema...</div>
+              <div class="meter-track"><div class="meter-fill blue" id="ramMeter"></div></div>
+              <div class="kv-list" id="ramKv">
+                <span>Usata: <strong>--</strong></span>
+                <span>Libera: <strong>--</strong></span>
+                <span>Totale: <strong>--</strong></span>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <h3 class="card-title">Disco NVMe (C:\)</h3>
+                <span class="pill info" id="diskDrivePill">C:\</span>
+              </div>
+              <div class="mono" style="font-size:12px; color:var(--muted);">Storage locale modelli &amp; GGUF</div>
+              <div class="meter-track"><div class="meter-fill blue" id="diskMeter"></div></div>
+              <div class="kv-list" id="diskKv">
+                <span>Libero: <strong>--</strong></span>
+                <span>Usato: <strong>--</strong></span>
+                <span>Totale: <strong>--</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-grid-3">
+            <div class="card">
+              <div class="card-head">
+                <h3 class="card-title">Fast Tier · Ollama</h3>
+                <span class="pill offline" id="engOllamaBadge">OFFLINE</span>
+              </div>
+              <div class="mono" style="font-size:12px; color:var(--muted);" id="engOllamaUrl">http://127.0.0.1:11434</div>
+              <div class="mono" style="font-size:12px;" id="engOllamaInfo">Modello attivo: --</div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <h3 class="card-title">Heavy MoE · Colibrì</h3>
+                <span class="pill offline" id="engHeavyBadge">OFFLINE</span>
+              </div>
+              <div class="mono" style="font-size:12px; color:var(--muted);" id="engHeavyUrl">http://127.0.0.1:11435</div>
+              <div class="mono" style="font-size:12px;" id="engHeavyInfo">Modello configurato: --</div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <h3 class="card-title">LM Studio</h3>
+                <span class="pill offline" id="engLmsBadge">OFFLINE</span>
+              </div>
+              <div class="mono" style="font-size:12px; color:var(--muted);" id="engLmsUrl">http://127.0.0.1:1234</div>
+              <div class="mono" style="font-size:12px;" id="engLmsInfo">Modelli: --</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3 class="card-title">Controllo Operativo Motori</h3>
+              <span class="mono" style="font-size:11.5px; color:var(--muted);" id="engineActionStatus">Pronto</span>
+            </div>
+
+            <div class="grid-2" style="max-width:460px;">
+              <div>
+                <label for="ctrlRamLimit">Heavy MoE RAM Limit (GB)</label>
+                <input id="ctrlRamLimit" type="number" min="8" max="22" step="1" value="12" />
+              </div>
+              <div>
+                <label for="ctrlCtx">Context (num_ctx / ctx)</label>
+                <input id="ctrlCtx" type="number" min="1024" max="131072" step="1024" value="16384" />
+              </div>
+            </div>
+
+            <div style="display:flex; flex-wrap:wrap; gap:10px;">
+              <button type="button" class="btn success" id="btnStartFast">Avvia Fast Tier (Ollama 27B)</button>
+              <button type="button" class="btn primary" id="btnStartHeavy">Avvia Heavy MoE (Colibrì)</button>
+              <button type="button" class="btn" id="btnUnloadVram">Libera VRAM (Ollama Stop)</button>
+              <button type="button" class="btn danger" id="btnStopAll">Arresta Motori &amp; Libera VRAM</button>
+            </div>
+
+            <label for="engineConsole">Output Script / Engine Control</label>
+            <pre class="console-log" id="engineConsole">In attesa di comandi operativi...</pre>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3 class="card-title">Garanzie Privacy &amp; Isolamento Offline</h3>
+              <span class="pill online">Verificato</span>
+            </div>
+            <div class="privacy-grid" id="privacyGrid">
+              <div class="privacy-item"><strong>Loopback Exclusive</strong><br /><span class="mono">127.0.0.1</span></div>
+              <div class="privacy-item"><strong>Modalità Offline</strong><br /><span class="mono">OFFLINE_MODE=true</span></div>
+              <div class="privacy-item"><strong>Zero Log Chat Disco</strong><br /><span class="mono">diskChatHistory=false</span></div>
+              <div class="privacy-item"><strong>CSP Rigorosa</strong><br /><span class="mono">default-src 'self'</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: MODELLI & BENCHMARK RAPIDO -->
+    <section class="tab-panel" id="tab-models">
+      <div class="page-scroll">
+        <div class="page-container">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div>
+              <h2 style="margin:0; font-size:18px;">Inventario Modelli Locali &amp; Benchmark Rapido</h2>
+              <div class="mono" style="font-size:12px; color:var(--muted);">Sola lettura da Ollama, models/heavy-moe/, REGISTRY.md e benchmarks/RESULTS.md</div>
+            </div>
+            <button type="button" class="btn" id="refreshRegistryBtn">Aggiorna Inventario</button>
+          </div>
+
+          <div class="card-grid-2">
+            <div class="card">
+              <div class="card-head">
+                <h3 class="card-title">Modelli Fast Tier (Ollama)</h3>
+                <span class="pill" id="regOllamaStatus">--</span>
+              </div>
+              <div class="table-wrap" id="regOllamaTableWrap">
+                <div style="padding:12px; color:var(--muted);">Caricamento...</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <h3 class="card-title">Heavy MoE Locale (models/heavy-moe/)</h3>
+                <span class="pill" id="regHeavyStatus">--</span>
+              </div>
+              <div class="mono" style="font-size:12px; color:var(--muted);" id="regHeavyActiveInfo">--</div>
+              <div class="table-wrap" id="regHeavyFilesWrap">
+                <div style="padding:12px; color:var(--muted);">Caricamento...</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3 class="card-title">Benchmark Rapido sul Backend Attivo</h3>
+              <span class="mono" style="font-size:12px; color:var(--muted);" id="benchTargetLabel">Target: --</span>
+            </div>
+            <div style="font-size:13px; color:var(--muted);">
+              Invia un prompt tecnico standard in italiano via streaming reale sul backend e modello attualmente selezionati nella Tab Chat, misura TTFT, Decode tok/s e VRAM picco (via telemetria), e prepara la riga Markdown per <code class="inline-code">benchmarks/RESULTS.md</code>.
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+              <button type="button" class="btn primary" id="runQuickBenchBtn">Esegui Benchmark Rapido</button>
+              <button type="button" class="btn" id="copyBenchRowBtn" disabled>Copia Riga Markdown</button>
+              <span class="mono" style="font-size:12px; color:var(--muted);" id="benchStatusText">Pronto</span>
+            </div>
+            <pre class="console-log" id="benchOutputBox">Premi "Esegui Benchmark Rapido" per avviare la misura.</pre>
+            <div>
+              <label for="benchMarkdownRow">Riga Markdown pronta per benchmarks/RESULTS.md</label>
+              <input id="benchMarkdownRow" type="text" readonly class="mono" placeholder="| Data | Modello | ..." />
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3 class="card-title">Storico Benchmark (benchmarks/RESULTS.md)</h3>
+              <button type="button" class="btn sm" id="toggleRawBenchBtn">Mostra Markdown Grezzo</button>
+            </div>
+            <div class="table-wrap" id="benchHistoryTableWrap"></div>
+            <pre class="console-log" id="benchHistoryRaw" style="display:none;"></pre>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3 class="card-title">Registro Master Modelli (models/REGISTRY.md)</h3>
+            </div>
+            <div class="md-content" id="registryMdRendered"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: GESTIONE LIBRERIA PROMPT -->
+    <section class="tab-panel" id="tab-prompts">
+      <div class="page-scroll">
+        <div class="page-container">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div>
+              <h2 style="margin:0; font-size:18px;">Gestione Libreria Prompt (prompts/*.md)</h2>
+              <div class="mono" style="font-size:12px; color:var(--muted);">Modifica, crea o elimina preset personalizzati. Aggiorna subito il selettore in Chat.</div>
+            </div>
+            <button type="button" class="btn primary" id="newPromptBtn">+ Nuovo Preset</button>
+          </div>
+
+          <div class="prompt-manager">
+            <div class="card">
+              <div class="card-head">
+                <h3 class="card-title">Preset Disponibili</h3>
+                <span class="mono" style="font-size:12px; color:var(--muted);" id="promptCountLabel">0</span>
+              </div>
+              <div class="prompt-list" id="promptManagerList"></div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <h3 class="card-title" id="peEditorTitle">Editor Preset</h3>
+                <span class="pill" id="peProtectedBadge" style="display:none;">Protetto</span>
+              </div>
+
+              <div class="grid-2">
+                <div>
+                  <label for="peId">ID File (senza .md, regex ^[a-zA-Z0-9_-]{2,64}$)</label>
+                  <input id="peId" type="text" class="mono" placeholder="es. security-reviewer" />
+                </div>
+                <div>
+                  <label for="peName">Nome Preset</label>
+                  <input id="peName" type="text" placeholder="es. security-reviewer" />
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div>
+                  <label for="peTemp">Temperatura Consigliata</label>
+                  <input id="peTemp" type="number" step="0.05" min="0" max="2" value="0.7" />
+                </div>
+                <div>
+                  <label for="peLang">Lingua</label>
+                  <input id="peLang" type="text" value="it" />
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div>
+                  <label for="peVersion">Versione</label>
+                  <input id="peVersion" type="text" value="1.0" />
+                </div>
+                <div>
+                  <label for="peTargets">Target Models (separati da virgola)</label>
+                  <input id="peTargets" type="text" value="Qwen3.8-27B-abliterated, Heavy-MoE-122B-177B" />
+                </div>
+              </div>
+
+              <div>
+                <label for="peDesc">Descrizione</label>
+                <input id="peDesc" type="text" placeholder="Breve descrizione del ruolo del prompt" />
+              </div>
+
+              <div>
+                <label for="peContent">Contenuto System Prompt</label>
+                <textarea id="peContent" rows="12" class="mono" placeholder="Scrivi qui le istruzioni di sistema..."></textarea>
+              </div>
+
+              <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+                <button type="button" class="btn primary" id="savePromptBtn">Salva Preset in prompts/</button>
+                <button type="button" class="btn success" id="usePromptInChatBtn">Usa subito in Chat</button>
+                <button type="button" class="btn danger" id="deletePromptBtn">Elimina Preset</button>
+                <span class="mono" style="font-size:12px; color:var(--muted);" id="peStatusMsg"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: ORCHESTRATOR AUTONOMO -->
+    <section class="tab-panel" id="tab-orchestrator">
+      <div class="page-scroll">
+        <div class="page-container">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div>
+              <h2 style="margin:0; font-size:18px;">Orchestrator Autonomo Multi-Agente</h2>
+              <div class="mono" style="font-size:12px; color:var(--muted);">Sandbox Docker <code class="inline-code">--network none</code> · Target <code class="inline-code">:ro</code> · Mutua Esclusione Heavy 177B ↔ Fast · Policy Immutabile</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <span class="pill" id="orchHeaderPolicyPill">IDLE</span>
+              <button type="button" class="btn" id="btnOrchRefreshStatus">↻ Aggiorna Stato</button>
+            </div>
+          </div>
+
+          <!-- 1. WIZARD AVVIO MISSIONE -->
+          <div class="card" id="orchWizardCard">
+            <div class="card-head">
+              <h3 class="card-title">1. Wizard Avvio Missione (Policy Immutabile per Run)</h3>
+              <span class="pill online" id="orchAccessModeBadge">Target Access: read_only (:ro)</span>
+            </div>
+
+            <div class="orch-lock-banner" id="orchWizardLockBanner">
+              Policy e configurazione bloccate durante la run attiva. Per cambiare policy attendi il completamento o arresta la run.
+            </div>
+
+            <div>
+              <label>Seleziona Policy di Ritenzione (Bloccata all'Avvio)</label>
+              <div class="policy-grid" id="orchPolicyGrid">
+                <label class="policy-option ephemeral selected" id="orchPolicyCardEphemeral">
+                  <input type="radio" name="orchRetentionMode" id="orchRetentionEphemeral" value="ephemeral" checked />
+                  <div>
+                    <div class="policy-title">
+                      <span>Ephemeral Privacy (Zero Disco)</span>
+                      <span class="pill online" style="padding:1px 6px;font-size:10px;">ZERO DISCO</span>
+                    </div>
+                    <div class="policy-desc">
+                      Solo RAM + Docker <code class="inline-code">tmpfs</code>, Rolling Purge a ogni step, <code class="inline-code">KVSAVE=0</code> bloccato, report solo in RAM cancellabile con 1 clic + timer auto-purge (Dead-Man's Switch). Pausa/Ripresa disabilitata.
+                    </div>
+                  </div>
+                </label>
+
+                <label class="policy-option persistent" id="orchPolicyCardPersistent">
+                  <input type="radio" name="orchRetentionMode" id="orchRetentionPersistent" value="persistent" />
+                  <div>
+                    <div class="policy-title">
+                      <span>Full Audit / Persistent Vault</span>
+                      <span class="pill warn" style="padding:1px 6px;font-size:10px;">VAULT DISCO</span>
+                    </div>
+                    <div class="policy-desc">
+                      Salva manifest, mappa, ipotesi, trace JSONL, checkpoint Pausa/Ripresa e PoC in <code class="inline-code">workspaces/vault/&lt;run_id&gt;/</code>. Eliminabile integralmente a richiesta.
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="grid-3">
+              <label class="check-row" id="orchEmbedPocRow">
+                <input type="checkbox" id="orchEmbedPoc" checked />
+                <span>Includi snippet PoC verificati nel Report Finale</span>
+              </label>
+
+              <label class="check-row disabled" id="orchAllowKvSaveRow" title="Disponibile solo in modalità Persistent Vault (bloccato OFF in Ephemeral)">
+                <input type="checkbox" id="orchAllowKvSave" disabled />
+                <span id="orchAllowKvSaveLabel">Abilita KV Cache Colibrì nel Vault (OFF in Ephemeral)</span>
+              </label>
+
+              <div>
+                <label for="orchAutoPurgeMin">Auto-Purge Report RAM (minuti · Dead-Man's Switch)</label>
+                <input id="orchAutoPurgeMin" type="number" min="1" max="240" step="1" value="45" />
+              </div>
+            </div>
+
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; gap:8px;">
+                <label for="orchTargetPath" style="margin:0;">Cartella Target (<code class="inline-code">read_only</code>)</label>
+                <button type="button" class="btn sm" id="btnOrchFillFixture" title="Compila il percorso della fixture di test locale">Usa Fixture Test</button>
+              </div>
+              <input id="orchTargetPath" type="text" class="mono" placeholder="./workspaces/orchestrator/tests/fixtures/sample_vulnerable_app" />
+            </div>
+
+            <div>
+              <label for="orchMission">Missione / Obiettivo</label>
+              <textarea id="orchMission" rows="3" placeholder="Es. Analizza la cartella target in sola lettura, identifica eventuali vulnerabilità di sicurezza o bug logici, verifica ogni ipotesi con PoC riproducibile nella sandbox Docker offline e produci un report tecnico completo."></textarea>
+            </div>
+
+            <div class="grid-2">
+              <div>
+                <label for="orchEngineMode">Modalità Motori</label>
+                <select id="orchEngineMode">
+                  <option value="dual_tier" selected>Dual-Tier: Heavy MoE (Strategist/Adjudicator) + Fast (Investigator)</option>
+                  <option value="fast_only">Fast-Only (Solo Fast Tier Ollama — esecuzione rapida)</option>
+                </select>
+              </div>
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                  <label for="orchFastModel" style="margin:0;">Modello Fast (Ollama Locale)</label>
+                  <button type="button" class="btn sm" id="btnOrchRefreshModels" title="Aggiorna modelli Ollama locali">↻</button>
+                </div>
+                <select id="orchFastModel">
+                  <option value="local-worker:latest">local-worker:latest (14B Q5_K_M · consigliato)</option>
+                  <option value="local-uncensored:latest">local-uncensored:latest (27B)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid-3">
+              <div>
+                <label for="orchMaxSteps">Budget: Max Steps</label>
+                <input id="orchMaxSteps" type="number" min="1" max="120" step="1" value="30" />
+              </div>
+              <div>
+                <label for="orchMaxEscalations">Budget: Max Heavy Escalations</label>
+                <input id="orchMaxEscalations" type="number" min="0" max="10" step="1" value="3" />
+              </div>
+              <div>
+                <label for="orchNoProgressLimit">Circuit Breaker: No-Progress Limit</label>
+                <input id="orchNoProgressLimit" type="number" min="2" max="8" step="1" value="3" />
+              </div>
+            </div>
+
+            <div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px;">
+              <button type="button" class="btn primary" id="btnOrchStart">▶ Avvia Missione</button>
+              <span class="mono" style="font-size:12px; color:var(--muted);" id="orchWizardMsg">Pronto per avviare una missione autonoma offline.</span>
+            </div>
+          </div>
+
+          <!-- 2. DASHBOARD LIVE DELLA RUN -->
+          <div class="card" id="orchDashboardCard">
+            <div class="card-head" style="flex-wrap:wrap;">
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <h3 class="card-title">2. Dashboard Live della Run</h3>
+                <span class="pill" id="orchFsmBadge">IDLE</span>
+                <span class="pill" id="orchPolicyBadge">IDLE</span>
+                <span class="mono" style="font-size:11.5px; color:var(--muted);" id="orchRunIdLabel">Run: --</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <button type="button" class="btn" id="btnOrchPause" disabled title="Metti in pausa la run Persistent">⏸ Pausa</button>
+                <button type="button" class="btn success" id="btnOrchResume" disabled title="Riprendi la run Persistent dal checkpoint">▶ Riprendi</button>
+                <button type="button" class="btn danger" id="btnOrchStop" disabled title="Arresta la run e distruggi eventuali container sandbox attivi">■ Arresta Run</button>
+              </div>
+            </div>
+
+            <div class="mono" style="font-size:12px; color:var(--muted);" id="orchControlMsg">Nessuna run attiva.</div>
+
+            <div class="orch-metrics-grid">
+              <div class="orch-metric-box">
+                <div class="orch-metric-label">Step</div>
+                <div class="orch-metric-val" id="orchMetricStep">0 / 0</div>
+              </div>
+              <div class="orch-metric-box">
+                <div class="orch-metric-label">Motore in VRAM</div>
+                <div class="orch-metric-val" id="orchMetricEngine">--</div>
+              </div>
+              <div class="orch-metric-box">
+                <div class="orch-metric-label">Tempo Trascorso</div>
+                <div class="orch-metric-val" id="orchMetricElapsed">00:00</div>
+              </div>
+              <div class="orch-metric-box">
+                <div class="orch-metric-label">Docker / Sandbox</div>
+                <div class="orch-metric-val" id="orchMetricSandbox">--</div>
+              </div>
+              <div class="orch-metric-box">
+                <div class="orch-metric-label">Escalation Heavy</div>
+                <div class="orch-metric-val" id="orchMetricEscalations">0 / 0</div>
+              </div>
+              <div class="orch-metric-box">
+                <div class="orch-metric-label">Dead-Man's Switch</div>
+                <div class="orch-metric-val" id="orchMetricDeadman">--</div>
+              </div>
+            </div>
+
+            <div>
+              <div class="card-head" style="margin-bottom:6px;">
+                <label style="margin:0;">Tabella Ipotesi Live</label>
+                <span class="mono" style="font-size:11.5px; color:var(--muted);" id="orchHypCountLabel">0 ipotesi</span>
+              </div>
+              <div class="table-wrap" id="orchHypothesesWrap">
+                <div style="padding:12px; color:var(--muted);">Nessuna ipotesi generata al momento.</div>
+              </div>
+            </div>
+
+            <div class="card-grid-2">
+              <div>
+                <div class="card-head" style="margin-bottom:6px;">
+                  <label style="margin:0;">Evidence Ledger Compatto</label>
+                  <span class="mono" style="font-size:11px; color:var(--muted);" id="orchLedgerMeta">0 car.</span>
+                </div>
+                <pre class="console-log" id="orchLedgerBox">Nessuna evidenza registrata.</pre>
+              </div>
+              <div>
+                <div class="card-head" style="margin-bottom:6px;">
+                  <label style="margin:0;">Eventi FSM Live</label>
+                  <span class="mono" style="font-size:11px; color:var(--muted);" id="orchEventsCount">0 eventi</span>
+                </div>
+                <pre class="console-log" id="orchEventsBox">In attesa di eventi Orchestrator...</pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. REPORT FINALE & GESTIONE MEMORIA -->
+          <div class="card" id="orchReportCard">
+            <div class="card-head" style="flex-wrap:wrap;">
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <h3 class="card-title">3. Report Finale &amp; Gestione Memoria</h3>
+                <span class="pill" id="orchVerdictBadge">Nessun Report</span>
+                <span class="pill" id="orchReportSourceBadge" style="display:none;">--</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <button type="button" class="btn danger-solid" id="btnOrchPurgeReport" disabled title="Azzera il buffer del report nella RAM del server e pulisce subito il DOM">🗑 Distruggi Report (Wipe RAM)</button>
+                <button type="button" class="btn primary" id="btnOrchExportMd" disabled title="Scarica manualmente il report Markdown in locale (opt-in)">⬇ Esporta .md (Opt-In)</button>
+                <button type="button" class="btn" id="btnOrchCopyReport" disabled>Copia MD</button>
+              </div>
+            </div>
+            <div class="mono" style="font-size:12px; color:var(--muted);" id="orchReportMeta">Nessun report caricato in memoria.</div>
+            <div class="orch-report-box md-content" id="orchReportRendered">
+              <div style="color:var(--muted);">Avvia una missione oppure apri un archivio Persistent salvato per visualizzare il Report Finale qui.</div>
+            </div>
+          </div>
+
+          <!-- 4. GESTORE ARCHIVI PERSISTENT -->
+          <div class="card" id="orchVaultsCard">
+            <div class="card-head" style="flex-wrap:wrap;">
+              <div>
+                <h3 class="card-title">4. Gestore Archivi Persistent (<code class="inline-code">workspaces/vault/</code>)</h3>
+                <div class="mono" style="font-size:11.5px; color:var(--muted);">Solo le run avviate in modalità Full Audit / Persistent compaiono qui. Le run Ephemeral lasciano 0 file.</div>
+              </div>
+              <button type="button" class="btn" id="btnOrchRefreshVaults">↻ Aggiorna Archivi</button>
+            </div>
+            <div class="mono" style="font-size:12px; color:var(--muted);" id="orchVaultsMsg"></div>
+            <div class="table-wrap" id="orchVaultsWrap">
+              <div style="padding:12px; color:var(--muted);">Nessun archivio Persistent rilevato.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="/static/app.js"></script>
+</body>
+</html>

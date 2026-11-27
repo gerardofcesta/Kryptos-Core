@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "auto/**"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12 via uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: workspaces/offline-chat/web/package-lock.json
+
+      - name: Build zero-CDN SPA
+        working-directory: workspaces/offline-chat/web
+        run: |
+          npm ci
+          npm run build
+
+      - name: Install Python test & audit dependencies
+        run: |
+          uv venv .venv --python 3.12
+          uv pip install --no-deps -e ".[dev,ocr]" --python .venv
+          uv sync --frozen || uv pip install -e ".[dev,ocr]"
+
+      - name: Run unit, integration & security test suites
+        run: uv run pytest -m "not docker" -q
+
+      - name: Run CLI headless doctor check
+        run: uv run python -m workspaces.local_llm_core.cli doctor
+
+      - name: Run strict privacy & pre-release gate
+        run: |
+          uv run python scripts/privacy_audit.py --strict
+          uv run python scripts/prepare_public_release.py --check

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 260" width="920" height="260" role="img" aria-label="Kryptos Core Defense in Depth Security Layers">
+  <rect width="920" height="260" rx="14" fill="#0f172a"/>
+  <text x="28" y="38" fill="#f8fafc" font-family="ui-sans-serif, system-ui, sans-serif" font-size="18" font-weight="700">Kryptos Core — Defense-in-Depth Request &amp; Agent Guardrail Pipeline</text>
+
+  <rect x="28" y="64" width="160" height="150" rx="8" fill="#1e293b" stroke="#38bdf8"/>
+  <text x="40" y="90" fill="#38bdf8" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="700">1. HTTP Boundary</text>
+  <text x="40" y="114" fill="#cbd5e1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">- Loopback Host check</text>
+  <text x="40" y="134" fill="#cbd5e1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">- Origin / CSRF guard</text>
+  <text x="40" y="154" fill="#cbd5e1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">- Bearer Gateway Token</text>
+  <text x="40" y="174" fill="#cbd5e1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">- Strict CSP (no inline)</text>
+
+  <rect x="206" y="64" width="160" height="150" rx="8" fill="#1e293b" stroke="#a855f7"/>
+  <text x="218" y="90" fill="#c084fc" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="700">2. Prompt Firewall</text>
+  <text x="218" y="114" fill="#cbd5e1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">- PEM private keys</text>
+  <text x="218" y="134" fill="#cbd5e1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">- API tokens (sk/ghp/AKIA)</text>
+  <text x="218" y="154" fill="#cbd5e1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">- IBAN &amp; Fiscal Codes</text>
+  <text x="218" y="174" fill="#cbd5e1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">- Email PII redaction</text>
+
+  <rect x="384" y="64" width="160" height="150" rx="8" fill="#1e293b" stroke="#f59e0b"/>
+  <text x="396" y="90" fill="#fbbf24" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="700">3. Anti-SSRF &amp; MCP</text>
+  <text x="396" y="114" fill="#cbd5e1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">- HTTPS host allowlist</text>
+  <text x="396" y="134" fill="#cbd5e1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">- Hop-by-hop redirects</text>
+  <text x="396" y="154" fill="#cbd5e1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">- IPv6/octal/hex block</text>
+  <text x="396" y="174" fill="#cbd5e1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">- 4 MiB SHA-256 verify</text>
+
+  <rect x="562" y="64" width="160" height="150" rx="8" fill="#1e293b" stroke="#ef4444"/>
+  <text x="574" y="90" fill="#f87171" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="700">4. Go Mode L1-L5</text>
+  <text x="574" y="114" fill="#cbd5e1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">- OS/Registry Hard Shield</text>
+  <text x="574" y="134" fill="#cbd5e1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">- Symlink escape guard</text>
+  <text x="574" y="154" fill="#cbd5e1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">- %252e%252e &amp; null block</text>
+  <text x="574" y="174" fill="#cbd5e1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">- Break-Glass L5 ritual</text>
+
+  <rect x="740" y="64" width="152" height="150" rx="8" fill="#1e293b" stroke="#22c55e"/>
+  <text x="752" y="90" fill="#4ade80" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="700">5. Ghost Wipe</text>
+  <text x="752" y="114" fill="#cbd5e1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">- Zero disk chat logs</text>
+  <text x="752" y="134" fill="#cbd5e1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">- Ephemeral RAM RAG</text>
+  <text x="752" y="154" fill="#cbd5e1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">- Atomic undo journal</text>
+  <text x="752" y="174" fill="#cbd5e1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">- runtime.json cleanup</text>
+</svg>

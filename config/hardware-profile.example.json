@@ -1,0 +1,101 @@
+{
+  "schemaVersion": "2.0",
+  "capturedAt": "example-template",
+  "os": {
+    "name": "Windows 11 / Linux x64",
+    "version": "generic",
+    "arch": "x64",
+    "wsl2Available": true,
+    "wsl2RamCapGb": 3,
+    "wsl2SwapDisabled": true
+  },
+  "cpu": {
+    "model": "Example Multi-Core x64 CPU",
+    "cores": 16,
+    "threads": 16,
+    "baseClockMhz": 3600
+  },
+  "ram": {
+    "totalGb": 32,
+    "type": "DDR5",
+    "modules": "2x16GB",
+    "currentSpeedMt": 5600,
+    "ratedSpeedMt": 6000,
+    "xmpEnabled": true
+  },
+  "gpu": {
+    "vendor": "NVIDIA",
+    "model": "Example 16 GB VRAM GPU",
+    "architecture": "Discrete GPU",
+    "computeCapability": "8.9+",
+    "vramTotalMb": 16384,
+    "vramUsableBudgetGb": 14.0,
+    "tdpWatts": 285,
+    "pcieLink": "Gen4/Gen5 x16",
+    "driverVersion": "auto-detected",
+    "cudaDriverVersion": "auto-detected",
+    "cudaToolkitVersion": "auto-detected",
+    "nativePrecisionSupport": ["FP16", "BF16", "FP8", "INT8", "INT4"]
+  },
+  "storage": {
+    "recommendedModelDrive": "LOCAL_LLM_MODELS_DIR",
+    "dualTierNote": "Example Dual-Tier budget: ~15 GB Fast Tier (Ollama blobs) + 50-150 GB Heavy MoE (models/heavy-moe/)",
+    "primaryNvme": {
+      "drive": "System Drive",
+      "model": "NVMe SSD",
+      "freeGb": 500.0
+    }
+  },
+  "tiers": {
+    "mutualExclusion": true,
+    "fast": {
+      "name": "Fast Tier (Ollama)",
+      "engine": "ollama",
+      "host": "127.0.0.1",
+      "port": 11434,
+      "modelClass": "14B-27B dense (Q4_K_M / IQ4_XS)",
+      "vramTargetGb": 14.5,
+      "ramCapGb": 4,
+      "ctxDefault": 16384,
+      "diskBudgetGb": "10-20",
+      "notes": "Inferenza quasi 100% GPU con Flash Attention + KV cache q8_0; mutualmente esclusivo con heavyMoe"
+    },
+    "fastWorker": {
+      "name": "Fast Worker (Ollama Tool-Calling)",
+      "engine": "ollama",
+      "host": "127.0.0.1",
+      "port": 11434,
+      "model": "local-worker:latest",
+      "modelClass": "14B Q5_K_M",
+      "vramTargetGb": 12.7,
+      "ramCapGb": 2,
+      "ctxDefault": 32768,
+      "diskBudgetGb": "10.5",
+      "notes": "Worker dedicato per tool-calling/PoC 100% GPU a 32k ctx con margine VRAM"
+    },
+    "heavyMoe": {
+      "name": "Heavy MoE Tier (Colibri v2.1.0)",
+      "engine": "colibri",
+      "version": "2.1.0",
+      "host": "127.0.0.1",
+      "port": 11435,
+      "modelClass": "120B+ MoE (6B-10B active)",
+      "ramCapGb": 12,
+      "vulkanHostPoolGb": 4,
+      "antiSwapMinFreeRamGb": 14,
+      "antiSwapCriticalFreeRamGb": 10,
+      "vramTargetGb": 14.5,
+      "vkTierReserveGb": 1.5,
+      "ctxDefault": 16384,
+      "diskBudgetGb": "50-150",
+      "notes": "Dense layers + hot routed experts in VRAM, Vulkan host pool + RAM cap, cold experts in streaming NVMe"
+    }
+  },
+  "llmCapacityGuidelines": {
+    "sweetSpotFullGpuParams": "7B-14B (Q6_K/Q8_0/FP8)",
+    "maxComfortableFullGpuParams": "20B-27B (Q4_K_M/IQ4_XS, moderate context)",
+    "hybridMoECapable": "30B-35B MoE (e.g. 3B active)",
+    "heavyMoECapable": "120B+ MoE (6B-10B active via Colibri v2.1.0 VRAM+RAM+NVMe)",
+    "notRecommended": "70B+ dense"
+  }
+}
