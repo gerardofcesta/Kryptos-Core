@@ -40,12 +40,17 @@ def is_prompt_firewall_enabled(header_val: str | None = None) -> bool:
     Determine whether deterministic PII/Secret prompt redaction is active.
 
     Header `X-Prompt-Firewall` explicitly enables/disables per-request when supplied;
-    otherwise falls back to env `LOCAL_LLM_PROMPT_FIREWALL` (default disabled).
+    otherwise falls back to env `KRYPTOS_PROMPT_FIREWALL` or `LOCAL_LLM_PROMPT_FIREWALL` (default disabled).
     """
     if header_val is not None and header_val.strip() != "":
         low = header_val.strip().lower()
         return low in ("1", "true", "yes", "on", "active")
-    env_val = os.environ.get("LOCAL_LLM_PROMPT_FIREWALL", "").strip().lower()
+    env_raw = (
+        os.environ.get("KRYPTOS_PROMPT_FIREWALL")
+        or os.environ.get("LOCAL_LLM_PROMPT_FIREWALL")
+        or ""
+    )
+    env_val = env_raw.strip().lower()
     return env_val in ("1", "true", "yes", "on", "active")
 
 
