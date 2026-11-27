@@ -416,6 +416,15 @@ def execute_engine_action(
         return 409, {"ok": False, "error": f"Lock EngineCoordinator occupato: {exc}"}
 
 
+def _should_use_python_runner(pwsh_exe: str | None, target_script: pathlib.Path) -> bool:
+    return (
+        sys.platform != "win32"
+        or os.environ.get("LOCAL_LLM_USE_PYTHON_RUNNER") == "1"
+        or not pwsh_exe
+        or not target_script.is_file()
+    )
+
+
 def _execute_engine_action_locked(action: str, payload: dict[str, Any]) -> tuple[int, dict[str, Any]]:
     if action == "unload_vram":
         ollama_exe = shutil.which("ollama")
@@ -498,12 +507,7 @@ def _execute_engine_action_locked(action: str, payload: dict[str, Any]) -> tuple
         if action in ("shutdown_app", "stop_all")
         else SCRIPTS_DIR / "start-llm.ps1"
     )
-    use_python_runner = (
-        sys.platform != "win32"
-        or os.environ.get("LOCAL_LLM_USE_PYTHON_RUNNER") == "1"
-        or not pwsh_exe
-        or not target_script.is_file()
-    )
+    use_python_runner = _should_use_python_runner(pwsh_exe, target_script)
 
     if use_python_runner:
         from ..engine_runner import get_python_engine_runner

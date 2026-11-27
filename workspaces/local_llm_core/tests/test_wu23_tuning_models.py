@@ -123,7 +123,7 @@ class TestWu23TuningAndModels(unittest.TestCase):
             return mock.Mock(returncode=0, stdout="OK", stderr="")
 
         with (
-            mock.patch("workspaces.local_llm_core.engine.coordinator.sys.platform", "win32"),
+            mock.patch("workspaces.local_llm_core.engine.coordinator._should_use_python_runner", return_value=False),
             mock.patch("workspaces.local_llm_core.engine.coordinator._resolve_pwsh", return_value="pwsh"),
             mock.patch("workspaces.local_llm_core.engine.coordinator.subprocess.run", side_effect=fake_run),
         ):
